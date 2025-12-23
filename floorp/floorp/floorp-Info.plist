@@ -2,6 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BrowserEngineNetworkingResidencies</key>
+	<array>
+		<string>org.mozilla.ios.GeckoTestBrowser.Networking</string>
+	</array>
+	<key>BrowserEngineRenderingResidencies</key>
+	<array>
+		<string>org.mozilla.ios.GeckoTestBrowser.Rendering</string>
+	</array>
+	<key>BrowserEngineWebContentResidencies</key>
+	<array>
+		<string>org.mozilla.ios.GeckoTestBrowser.WebContent</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -33,6 +45,8 @@
 	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>

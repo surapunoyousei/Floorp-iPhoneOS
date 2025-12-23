@@ -10,7 +10,6 @@ class BrowserViewController: UIViewController {
 
     @objc init() {
         super.init(nibName: nil, bundle: nil)
-        print("[Floorp] BrowserViewController: init called")
     }
 
     required init?(coder: NSCoder) {
@@ -19,16 +18,16 @@ class BrowserViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("[Floorp] BrowserViewController: viewDidLoad")
-        view.backgroundColor = .blue // 背景を青に（目立つように）
+        view.backgroundColor = .white
 
         geckoView = GeckoView()
-        geckoView.backgroundColor = .red // GeckoView を赤に
+        geckoView.backgroundColor = .white
         geckoView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(geckoView)
+        // 画面全体（セーフエリア無視で全画面）に広げる
         NSLayoutConstraint.activate([
-            geckoView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            geckoView.topAnchor.constraint(equalTo: view.topAnchor),
             geckoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             geckoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             geckoView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -44,11 +43,36 @@ class BrowserViewController: UIViewController {
     }
 
     private func setupGecko() {
-        print("[Floorp] BrowserViewController: Setting up Gecko with size \(geckoView.frame.size)")
         session = GeckoSession()
+        session.navigationDelegate = self
+        session.progressDelegate = self
         session.open()
+        
         geckoView.session = session
-        print("[Floorp] BrowserViewController: Loading floorp.app")
-        session.load("https://floorp.app")
+        
+        // 17.4+ の Browser Engine Kit 向けにセッションを確実にアクティブ化
+        // (以前クラッシュした setActive は慎重に。ここでは load を優先)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            print("[Floorp] Loading initial page: https://floorp.app")
+            self.session.load("https://floorp.app")
+        }
     }
+}
+
+extension BrowserViewController: NavigationDelegate {
+    func onLocationChange(session: GeckoSession, url: String?, permissions: [ContentPermission]) {
+        print("[Floorp] URL -> \(url ?? "nil")")
+    }
+    func onLoadRequest(session: GeckoSession, request: LoadRequest) -> AllowOrDeny { .allow }
+    func onCanGoBack(session: GeckoSession, canGoBack: Bool) {}
+    func onCanGoForward(session: GeckoSession, canGoForward: Bool) {}
+    func onSubframeLoadRequest(session: GeckoSession, request: LoadRequest) -> AllowOrDeny { .allow }
+    func onNewSession(session: GeckoSession, uri: String) -> GeckoSession? { nil }
+}
+
+extension BrowserViewController: ProgressDelegate {
+    func onPageStart(session: GeckoSession, url: String) {}
+    func onPageStop(session: GeckoSession, success: Bool) {}
+    func onProgressChange(session: GeckoSession, progress: Int) {}
 }
