@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1ADF4DD57ADA9BC01ADE352C"
-               BuildableName = ".appex"
+               BuildableName = "Rendering.appex"
                BlueprintName = "Rendering"
                ReferencedContainer = "container:floorp.xcodeproj">
             </BuildableReference>

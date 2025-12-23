@@ -17,7 +17,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F63A4E545E03D94F05D1B2E6"
-               BuildableName = ".appex"
+               BuildableName = "WebContent.appex"
                BlueprintName = "WebContent"
                ReferencedContainer = "container:floorp.xcodeproj">
             </BuildableReference>
