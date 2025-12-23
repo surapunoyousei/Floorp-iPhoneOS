@@ -4,6 +4,8 @@
 
 import UIKit
 
+// MARK: - BrowserBottomBarDelegate
+
 protocol BrowserBottomBarDelegate: AnyObject {
     func backButtonTapped()
     func forwardButtonTapped()
@@ -13,10 +15,15 @@ protocol BrowserBottomBarDelegate: AnyObject {
     func tabsButtonTapped()
 }
 
+// MARK: - BrowserBottomBar
+
 /// Bottom navigation bar with browser controls
-class BrowserBottomBar: UIView {
+final class BrowserBottomBar: UIView {
+    
+    // MARK: - Properties
     
     weak var delegate: BrowserBottomBarDelegate?
+    private var isLoading = false
     
     // MARK: - UI Components
     
@@ -29,42 +36,18 @@ class BrowserBottomBar: UIView {
         return stack
     }()
     
-    private lazy var backButton: UIButton = createButton(
-        systemName: "chevron.left",
-        action: #selector(backTapped)
-    )
+    private lazy var backButton = createButton(systemName: "chevron.left", action: #selector(backTapped))
+    private lazy var forwardButton = createButton(systemName: "chevron.right", action: #selector(forwardTapped))
+    private lazy var homeButton = createButton(systemName: "house", action: #selector(homeTapped))
+    private lazy var reloadStopButton = createButton(systemName: "arrow.clockwise", action: #selector(reloadTapped))
+    private lazy var tabsButton = createButton(systemName: "square.on.square", action: #selector(tabsTapped))
     
-    private lazy var forwardButton: UIButton = createButton(
-        systemName: "chevron.right",
-        action: #selector(forwardTapped)
-    )
-    
-    private lazy var reloadStopButton: UIButton = createButton(
-        systemName: "arrow.clockwise",
-        action: #selector(reloadTapped)
-    )
-    
-    private lazy var homeButton: UIButton = createButton(
-        systemName: "house",
-        action: #selector(homeTapped)
-    )
-    
-    private lazy var tabsButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Create tabs icon with badge-like appearance
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-        button.setImage(UIImage(systemName: "square.on.square", withConfiguration: config), for: .normal)
-        button.tintColor = .label
-        button.addTarget(self, action: #selector(tabsTapped), for: .touchUpInside)
-        
-        // Only set width, height is determined by stackView
-        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        return button
+    private lazy var topBorder: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = Theme.Colors.separator
+        return view
     }()
-    
-    private var isLoading = false
     
     // MARK: - Init
     
@@ -80,36 +63,18 @@ class BrowserBottomBar: UIView {
     // MARK: - Setup
     
     private func setupUI() {
-        backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.1, alpha: 1.0)
-                : .systemBackground
-        }
+        backgroundColor = Theme.Colors.background
         
-        // Add top border
-        let topBorder = UIView()
-        topBorder.translatesAutoresizingMaskIntoConstraints = false
-        topBorder.backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.2, alpha: 1.0)
-                : UIColor(white: 0.85, alpha: 1.0)
-        }
         addSubview(topBorder)
-        
         addSubview(stackView)
         
-        // Add buttons
-        stackView.addArrangedSubview(backButton)
-        stackView.addArrangedSubview(forwardButton)
-        stackView.addArrangedSubview(homeButton)
-        stackView.addArrangedSubview(reloadStopButton)
-        stackView.addArrangedSubview(tabsButton)
+        [backButton, forwardButton, homeButton, reloadStopButton, tabsButton].forEach {
+            stackView.addArrangedSubview($0)
+        }
         
-        // Initial state
-        backButton.isEnabled = false
-        backButton.tintColor = .secondaryLabel
-        forwardButton.isEnabled = false
-        forwardButton.tintColor = .secondaryLabel
+        // Initial disabled state
+        updateBackButton(canGoBack: false)
+        updateForwardButton(canGoForward: false)
         
         NSLayoutConstraint.activate([
             topBorder.topAnchor.constraint(equalTo: topAnchor),
@@ -127,13 +92,10 @@ class BrowserBottomBar: UIView {
     private func createButton(systemName: String, action: Selector) -> UIButton {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-        button.setImage(UIImage(systemName: systemName, withConfiguration: config), for: .normal)
+        button.setImage(UIImage(systemName: systemName, withConfiguration: Theme.Symbols.medium), for: .normal)
         button.tintColor = .label
         button.addTarget(self, action: action, for: .touchUpInside)
-        
-        // Only set width, height is determined by stackView
-        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        button.widthAnchor.constraint(equalToConstant: Constants.Layout.buttonSize).isActive = true
         return button
     }
     
@@ -153,43 +115,21 @@ class BrowserBottomBar: UIView {
         guard self.isLoading != isLoading else { return }
         self.isLoading = isLoading
         
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        let iconName = isLoading ? "xmark" : "arrow.clockwise"
+        let action = isLoading ? #selector(stopTapped) : #selector(reloadTapped)
+        let previousAction = isLoading ? #selector(reloadTapped) : #selector(stopTapped)
         
-        if isLoading {
-            reloadStopButton.setImage(UIImage(systemName: "xmark", withConfiguration: config), for: .normal)
-            reloadStopButton.removeTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
-            reloadStopButton.addTarget(self, action: #selector(stopTapped), for: .touchUpInside)
-        } else {
-            reloadStopButton.setImage(UIImage(systemName: "arrow.clockwise", withConfiguration: config), for: .normal)
-            reloadStopButton.removeTarget(self, action: #selector(stopTapped), for: .touchUpInside)
-            reloadStopButton.addTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
-        }
+        reloadStopButton.setImage(UIImage(systemName: iconName, withConfiguration: Theme.Symbols.medium), for: .normal)
+        reloadStopButton.removeTarget(self, action: previousAction, for: .touchUpInside)
+        reloadStopButton.addTarget(self, action: action, for: .touchUpInside)
     }
     
     // MARK: - Actions
     
-    @objc private func backTapped() {
-        delegate?.backButtonTapped()
-    }
-    
-    @objc private func forwardTapped() {
-        delegate?.forwardButtonTapped()
-    }
-    
-    @objc private func reloadTapped() {
-        delegate?.reloadButtonTapped()
-    }
-    
-    @objc private func stopTapped() {
-        delegate?.stopButtonTapped()
-    }
-    
-    @objc private func homeTapped() {
-        delegate?.homeButtonTapped()
-    }
-    
-    @objc private func tabsTapped() {
-        delegate?.tabsButtonTapped()
-    }
+    @objc private func backTapped() { delegate?.backButtonTapped() }
+    @objc private func forwardTapped() { delegate?.forwardButtonTapped() }
+    @objc private func homeTapped() { delegate?.homeButtonTapped() }
+    @objc private func reloadTapped() { delegate?.reloadButtonTapped() }
+    @objc private func stopTapped() { delegate?.stopButtonTapped() }
+    @objc private func tabsTapped() { delegate?.tabsButtonTapped() }
 }
-

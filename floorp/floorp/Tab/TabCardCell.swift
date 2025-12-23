@@ -4,14 +4,22 @@
 
 import UIKit
 
+// MARK: - TabCardCellDelegate
+
 protocol TabCardCellDelegate: AnyObject {
     func tabCardCellDidTapClose(_ cell: TabCardCell)
 }
 
+// MARK: - TabCardCell
+
 /// A card cell representing a tab with screenshot and title
-class TabCardCell: UICollectionViewCell {
+final class TabCardCell: UICollectionViewCell {
+    
+    // MARK: - Static Properties
     
     static let reuseIdentifier = "TabCardCell"
+    
+    // MARK: - Properties
     
     weak var delegate: TabCardCellDelegate?
     
@@ -20,11 +28,11 @@ class TabCardCell: UICollectionViewCell {
     private lazy var containerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(white: 0.15, alpha: 1.0)
+        view.backgroundColor = Theme.Colors.secondaryBackground
         view.layer.cornerRadius = 12
         view.clipsToBounds = true
         view.layer.borderWidth = 0
-        view.layer.borderColor = UIColor.systemBlue.cgColor
+        view.layer.borderColor = Theme.Colors.selected.cgColor
         return view
     }()
     
@@ -33,14 +41,14 @@ class TabCardCell: UICollectionViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.backgroundColor = UIColor(white: 0.2, alpha: 1.0)
+        imageView.backgroundColor = Theme.Colors.tertiaryBackground
         return imageView
     }()
     
     private lazy var titleContainer: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(white: 0.12, alpha: 1.0)
+        view.backgroundColor = Theme.Colors.tertiaryBackground
         return view
     }()
     
@@ -56,7 +64,7 @@ class TabCardCell: UICollectionViewCell {
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.font = Theme.Fonts.small
         label.textColor = .label
         label.lineBreakMode = .byTruncatingTail
         return label
@@ -65,10 +73,9 @@ class TabCardCell: UICollectionViewCell {
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
-        button.setImage(UIImage(systemName: "xmark", withConfiguration: config), for: .normal)
+        button.setImage(UIImage(systemName: "xmark", withConfiguration: Theme.Symbols.small), for: .normal)
         button.tintColor = .secondaryLabel
-        button.backgroundColor = UIColor(white: 0.2, alpha: 0.8)
+        button.backgroundColor = Theme.Colors.tertiaryBackground.withAlphaComponent(0.8)
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
         return button
@@ -102,30 +109,25 @@ class TabCardCell: UICollectionViewCell {
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            // Screenshot fills most of the card
             screenshotImageView.topAnchor.constraint(equalTo: containerView.topAnchor),
             screenshotImageView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             screenshotImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             screenshotImageView.bottomAnchor.constraint(equalTo: titleContainer.topAnchor),
             
-            // Title container at bottom
             titleContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             titleContainer.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             titleContainer.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
             titleContainer.heightAnchor.constraint(equalToConstant: 36),
             
-            // Favicon
             faviconImageView.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor, constant: 8),
             faviconImageView.centerYAnchor.constraint(equalTo: titleContainer.centerYAnchor),
             faviconImageView.widthAnchor.constraint(equalToConstant: 16),
             faviconImageView.heightAnchor.constraint(equalToConstant: 16),
             
-            // Title
             titleLabel.leadingAnchor.constraint(equalTo: faviconImageView.trailingAnchor, constant: 6),
             titleLabel.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor, constant: -8),
             titleLabel.centerYAnchor.constraint(equalTo: titleContainer.centerYAnchor),
             
-            // Close button
             closeButton.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 6),
             closeButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -6),
             closeButton.widthAnchor.constraint(equalToConstant: 20),
@@ -136,15 +138,8 @@ class TabCardCell: UICollectionViewCell {
     // MARK: - Configuration
     
     func configure(with tab: Tab, isSelected: Bool) {
-        titleLabel.text = tab.title
-        
-        if let screenshot = tab.screenshot {
-            screenshotImageView.image = screenshot
-        } else {
-            screenshotImageView.image = nil
-        }
-        
-        // Highlight selected tab
+        titleLabel.text = tab.displayTitle
+        screenshotImageView.image = tab.screenshot
         containerView.layer.borderWidth = isSelected ? 2 : 0
     }
     
@@ -163,4 +158,3 @@ class TabCardCell: UICollectionViewCell {
         containerView.layer.borderWidth = 0
     }
 }
-

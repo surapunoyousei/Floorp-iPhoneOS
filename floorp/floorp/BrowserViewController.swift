@@ -7,18 +7,14 @@ import UIKit
 import GeckoView
 
 @objc(BrowserViewController)
-class BrowserViewController: UIViewController {
+final class BrowserViewController: UIViewController {
     
     // MARK: - UI Components
     
     private lazy var topSafeAreaFiller: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.1, alpha: 1.0)
-                : .systemBackground
-        }
+        view.backgroundColor = Theme.Colors.background
         return view
     }()
     
@@ -32,8 +28,9 @@ class BrowserViewController: UIViewController {
     private lazy var progressBar: UIProgressView = {
         let progress = UIProgressView()
         progress.translatesAutoresizingMaskIntoConstraints = false
-        progress.progressTintColor = .systemBlue
+        progress.progressTintColor = Theme.Colors.accent
         progress.trackTintColor = .clear
+        progress.isHidden = true
         return progress
     }()
     
@@ -54,21 +51,16 @@ class BrowserViewController: UIViewController {
     private lazy var bottomSafeAreaFiller: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.1, alpha: 1.0)
-                : .systemBackground
-        }
+        view.backgroundColor = Theme.Colors.background
         return view
     }()
     
     // MARK: - Properties
     
     private let tabManager = TabManager.shared
-    private var homepage = "https://floorp.app"
     
     private var currentTab: Tab? {
-        return tabManager.selectedTab
+        tabManager.selectedTab
     }
     
     // MARK: - Lifecycle
@@ -83,28 +75,26 @@ class BrowserViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        overrideUserInterfaceStyle = .dark
-        view.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
-        
+        configureAppearance()
         setupUI()
         setupTabManager()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        // Ensure homepage is loaded if current tab has no URL
-        if let tab = currentTab, tab.url == nil {
-            tab.load(homepage)
-        }
+        ensureTabLoaded()
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+        .lightContent
     }
     
-    // MARK: - UI Setup
+    // MARK: - Configuration
+    
+    private func configureAppearance() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = Theme.Colors.background
+    }
     
     private func setupUI() {
         view.addSubview(geckoView)
@@ -115,61 +105,68 @@ class BrowserViewController: UIViewController {
         view.addSubview(bottomSafeAreaFiller)
         
         NSLayoutConstraint.activate([
+            // Top safe area filler
             topSafeAreaFiller.topAnchor.constraint(equalTo: view.topAnchor),
             topSafeAreaFiller.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             topSafeAreaFiller.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             topSafeAreaFiller.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             
+            // URL bar
             urlBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             urlBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             urlBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            urlBar.heightAnchor.constraint(equalToConstant: 52),
+            urlBar.heightAnchor.constraint(equalToConstant: Constants.Layout.urlBarHeight),
             
+            // Progress bar
             progressBar.topAnchor.constraint(equalTo: urlBar.bottomAnchor),
             progressBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             progressBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            progressBar.heightAnchor.constraint(equalToConstant: 2),
+            progressBar.heightAnchor.constraint(equalToConstant: Constants.Layout.progressBarHeight),
             
+            // Bottom bar
             bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            bottomBar.heightAnchor.constraint(equalToConstant: 50),
+            bottomBar.heightAnchor.constraint(equalToConstant: Constants.Layout.bottomBarHeight),
             
+            // Bottom safe area filler
             bottomSafeAreaFiller.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             bottomSafeAreaFiller.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomSafeAreaFiller.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomSafeAreaFiller.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
+            // Gecko view
             geckoView.topAnchor.constraint(equalTo: progressBar.bottomAnchor),
             geckoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             geckoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             geckoView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor),
         ])
-        
-        progressBar.isHidden = true
     }
-    
-    // MARK: - Tab Manager Setup
     
     private func setupTabManager() {
         tabManager.delegate = self
         
-        // Create first tab if none exist
-        if tabManager.tabs.isEmpty {
-            tabManager.createTab(url: homepage)
+        if tabManager.isEmpty {
+            tabManager.createTab(url: Constants.URLs.homepage)
         } else if let tab = tabManager.selectedTab {
-            // Reconnect to existing tab
             connectToTab(tab)
         }
     }
     
+    private func ensureTabLoaded() {
+        guard let tab = currentTab, tab.url == nil else { return }
+        tab.load(Constants.URLs.homepage)
+    }
+    
+    // MARK: - Tab Connection
+    
     private func connectToTab(_ tab: Tab) {
-        // Set up delegates for the tab's session
+        // Set up delegates
         tab.session.navigationDelegate = self
         tab.session.progressDelegate = self
         tab.session.contentDelegate = self
         
-        // Connect GeckoView to session
+        // Connect GeckoView
         geckoView.session = tab.session
         
         // Update UI
@@ -181,16 +178,14 @@ class BrowserViewController: UIViewController {
     // MARK: - Screenshot
     
     private func captureScreenshot() -> UIImage? {
-        let renderer = UIGraphicsImageRenderer(bounds: geckoView.bounds)
-        return renderer.image { context in
+        UIGraphicsImageRenderer(bounds: geckoView.bounds).image { _ in
             geckoView.drawHierarchy(in: geckoView.bounds, afterScreenUpdates: true)
         }
     }
     
     private func updateCurrentTabScreenshot() {
         guard let tab = currentTab else { return }
-        let screenshot = captureScreenshot()
-        tabManager.updateTab(tab, screenshot: screenshot)
+        tabManager.updateTab(tab, screenshot: captureScreenshot())
     }
     
     // MARK: - Navigation
@@ -203,7 +198,6 @@ class BrowserViewController: UIViewController {
     // MARK: - Tab Switcher
     
     private func showTabSwitcher() {
-        // Capture screenshot before showing switcher
         updateCurrentTabScreenshot()
         
         let tabSwitcher = TabSwitcherViewController()
@@ -211,23 +205,38 @@ class BrowserViewController: UIViewController {
         tabSwitcher.modalPresentationStyle = .fullScreen
         present(tabSwitcher, animated: true)
     }
+    
+    // MARK: - Full Screen
+    
+    private func setFullScreen(_ isFullScreen: Bool, animated: Bool = true) {
+        let duration = animated ? Constants.Animation.defaultDuration : 0
+        
+        UIView.animate(withDuration: duration) {
+            self.topSafeAreaFiller.isHidden = isFullScreen
+            self.urlBar.isHidden = isFullScreen
+            self.progressBar.isHidden = isFullScreen
+            self.bottomBar.isHidden = isFullScreen
+            self.bottomSafeAreaFiller.isHidden = isFullScreen
+        }
+    }
 }
 
 // MARK: - TabManagerDelegate
+
 extension BrowserViewController: TabManagerDelegate {
+    
     func tabManager(_ manager: TabManager, didSelectTab tab: Tab) {
         connectToTab(tab)
     }
     
     func tabManager(_ manager: TabManager, didAddTab tab: Tab) {
-        // Set up the new tab
         tab.session.navigationDelegate = self
         tab.session.progressDelegate = self
         tab.session.contentDelegate = self
     }
     
     func tabManager(_ manager: TabManager, didRemoveTab tab: Tab) {
-        // Tab cleanup is handled by TabManager
+        // Cleanup handled by TabManager
     }
     
     func tabManagerDidUpdateTabs(_ manager: TabManager) {
@@ -236,7 +245,9 @@ extension BrowserViewController: TabManagerDelegate {
 }
 
 // MARK: - TabSwitcherDelegate
+
 extension BrowserViewController: TabSwitcherDelegate {
+    
     func tabSwitcher(_ switcher: TabSwitcherViewController, didSelectTab tab: Tab) {
         tabManager.selectTab(tab)
         switcher.dismiss(animated: true)
@@ -247,7 +258,7 @@ extension BrowserViewController: TabSwitcherDelegate {
     }
     
     func tabSwitcherDidRequestNewTab(_ switcher: TabSwitcherViewController) {
-        tabManager.createTab(url: homepage)
+        tabManager.createTab(url: Constants.URLs.homepage)
         switcher.dismiss(animated: true)
     }
     
@@ -257,32 +268,36 @@ extension BrowserViewController: TabSwitcherDelegate {
 }
 
 // MARK: - BrowserURLBarDelegate
+
 extension BrowserViewController: BrowserURLBarDelegate {
+    
     func urlSubmitted(_ url: String) {
         loadURL(url)
     }
 }
 
 // MARK: - BrowserBottomBarDelegate
+
 extension BrowserViewController: BrowserBottomBarDelegate {
+    
     func backButtonTapped() {
-        currentTab?.session.goBack()
+        currentTab?.goBack()
     }
     
     func forwardButtonTapped() {
-        currentTab?.session.goForward()
+        currentTab?.goForward()
     }
     
     func reloadButtonTapped() {
-        currentTab?.session.reload()
+        currentTab?.reload()
     }
     
     func stopButtonTapped() {
-        currentTab?.session.stop()
+        currentTab?.stop()
     }
     
     func homeButtonTapped() {
-        loadURL(homepage)
+        loadURL(Constants.URLs.homepage)
     }
     
     func tabsButtonTapped() {
@@ -291,56 +306,58 @@ extension BrowserViewController: BrowserBottomBarDelegate {
 }
 
 // MARK: - NavigationDelegate
+
 extension BrowserViewController: NavigationDelegate {
+    
     func onLocationChange(session: GeckoSession, url: String?, permissions: [ContentPermission]) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard let tab = tabManager.tab(for: session), tab == currentTab else { return }
         urlBar.setURL(url)
         tabManager.updateTab(tab, url: url)
     }
     
     func onCanGoBack(session: GeckoSession, canGoBack: Bool) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard let tab = tabManager.tab(for: session), tab == currentTab else { return }
         tab.canGoBack = canGoBack
         bottomBar.updateBackButton(canGoBack: canGoBack)
     }
     
     func onCanGoForward(session: GeckoSession, canGoForward: Bool) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard let tab = tabManager.tab(for: session), tab == currentTab else { return }
         tab.canGoForward = canGoForward
         bottomBar.updateForwardButton(canGoForward: canGoForward)
     }
     
     func onLoadRequest(session: GeckoSession, request: LoadRequest) -> AllowOrDeny {
-        return .allow
+        .allow
     }
     
     func onSubframeLoadRequest(session: GeckoSession, request: LoadRequest) -> AllowOrDeny {
-        return .allow
+        .allow
     }
     
     func onNewSession(session: GeckoSession, uri: String) -> GeckoSession? {
-        // Open in new tab
-        let newTab = tabManager.createTab(url: uri)
-        return newTab.session
+        tabManager.createTab(url: uri).session
     }
 }
 
 // MARK: - ProgressDelegate
+
 extension BrowserViewController: ProgressDelegate {
+    
     func onPageStart(session: GeckoSession, url: String) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard tabManager.tab(for: session) == currentTab else { return }
         progressBar.isHidden = false
         progressBar.progress = 0
         bottomBar.updateLoadingState(isLoading: true)
     }
     
     func onPageStop(session: GeckoSession, success: Bool) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard tabManager.tab(for: session) == currentTab else { return }
         progressBar.isHidden = true
         bottomBar.updateLoadingState(isLoading: false)
         
         // Capture screenshot after page load
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Animation.screenshotDelay) { [weak self] in
             self?.updateCurrentTabScreenshot()
         }
     }
@@ -351,9 +368,11 @@ extension BrowserViewController: ProgressDelegate {
 }
 
 // MARK: - ContentDelegate
+
 extension BrowserViewController: ContentDelegate {
+    
     func onTitleChange(session: GeckoSession, title: String) {
-        guard let tab = currentTab, tab.session === session else { return }
+        guard let tab = tabManager.tab(for: session) else { return }
         tabManager.updateTab(tab, title: title)
     }
     
@@ -362,20 +381,12 @@ extension BrowserViewController: ContentDelegate {
     func onFocusRequest(session: GeckoSession) {}
     
     func onCloseRequest(session: GeckoSession) {
-        // Find and close the tab that requested close
-        if let tab = tabManager.tabs.first(where: { $0.session === session }) {
-            tabManager.closeTab(tab)
-        }
+        guard let tab = tabManager.tab(for: session) else { return }
+        tabManager.closeTab(tab)
     }
     
     func onFullScreen(session: GeckoSession, fullScreen: Bool) {
-        UIView.animate(withDuration: 0.3) {
-            self.topSafeAreaFiller.isHidden = fullScreen
-            self.urlBar.isHidden = fullScreen
-            self.progressBar.isHidden = fullScreen
-            self.bottomBar.isHidden = fullScreen
-            self.bottomSafeAreaFiller.isHidden = fullScreen
-        }
+        setFullScreen(fullScreen)
     }
     
     func onMetaViewportFitChange(session: GeckoSession, viewportFit: String) {}
@@ -385,29 +396,11 @@ extension BrowserViewController: ContentDelegate {
     func onContextMenu(session: GeckoSession, screenX: Int, screenY: Int, element: ContextElement) {}
     
     func onCrash(session: GeckoSession) {
-        let alert = UIAlertController(
-            title: "Page Crashed",
-            message: "Something went wrong with this page.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Reload", style: .default) { [weak self] _ in
-            self?.currentTab?.session.open()
-            if let tab = self?.currentTab {
-                self?.geckoView.session = tab.session
-                tab.load(self?.homepage ?? "https://floorp.app")
-            }
-        })
-        alert.addAction(UIAlertAction(title: "Close Tab", style: .destructive) { [weak self] _ in
-            if let tab = self?.currentTab {
-                self?.tabManager.closeTab(tab)
-            }
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+        presentCrashAlert(for: session)
     }
     
     func onKill(session: GeckoSession) {
-        onCrash(session: session)
+        presentCrashAlert(for: session)
     }
     
     func onFirstComposite(session: GeckoSession) {}
@@ -419,7 +412,7 @@ extension BrowserViewController: ContentDelegate {
     func onWebAppManifest(session: GeckoSession, manifest: Any) {}
     
     func onSlowScript(session: GeckoSession, scriptFileName: String) async -> SlowScriptResponse {
-        return .halt
+        .halt
     }
     
     func onShowDynamicToolbar(session: GeckoSession) {}
@@ -427,4 +420,30 @@ extension BrowserViewController: ContentDelegate {
     func onCookieBannerDetected(session: GeckoSession) {}
     
     func onCookieBannerHandled(session: GeckoSession) {}
+    
+    // MARK: - Crash Handling
+    
+    private func presentCrashAlert(for session: GeckoSession) {
+        let alert = UIAlertController(
+            title: "Page Crashed",
+            message: "Something went wrong with this page.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Reload", style: .default) { [weak self] _ in
+            guard let self, let tab = self.tabManager.tab(for: session) else { return }
+            tab.open()
+            self.geckoView.session = tab.session
+            tab.load(tab.url ?? Constants.URLs.homepage)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Close Tab", style: .destructive) { [weak self] _ in
+            guard let self, let tab = self.tabManager.tab(for: session) else { return }
+            self.tabManager.closeTab(tab)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        present(alert, animated: true)
+    }
 }

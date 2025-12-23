@@ -4,12 +4,18 @@
 
 import UIKit
 
+// MARK: - BrowserURLBarDelegate
+
 protocol BrowserURLBarDelegate: AnyObject {
     func urlSubmitted(_ url: String)
 }
 
+// MARK: - BrowserURLBar
+
 /// Desktop Floorp-style URL bar
-class BrowserURLBar: UIView {
+final class BrowserURLBar: UIView {
+    
+    // MARK: - Properties
     
     weak var delegate: BrowserURLBarDelegate?
     
@@ -18,12 +24,8 @@ class BrowserURLBar: UIView {
     private lazy var urlContainer: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.15, alpha: 1.0)
-                : UIColor(white: 0.95, alpha: 1.0)
-        }
-        view.layer.cornerRadius = 8
+        view.backgroundColor = Theme.Colors.secondaryBackground
+        view.layer.cornerRadius = Constants.Layout.cornerRadius
         view.clipsToBounds = true
         return view
     }()
@@ -40,7 +42,7 @@ class BrowserURLBar: UIView {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.placeholder = "Search with Google or enter address"
-        field.font = .systemFont(ofSize: 15)
+        field.font = Theme.Fonts.body
         field.textColor = .label
         field.returnKeyType = .go
         field.autocapitalizationType = .none
@@ -65,21 +67,17 @@ class BrowserURLBar: UIView {
     // MARK: - Setup
     
     private func setupUI() {
-        backgroundColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark 
-                ? UIColor(white: 0.1, alpha: 1.0)
-                : .systemBackground
-        }
+        backgroundColor = Theme.Colors.background
         
         addSubview(urlContainer)
         urlContainer.addSubview(searchIcon)
         urlContainer.addSubview(urlTextField)
         
         NSLayoutConstraint.activate([
-            urlContainer.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            urlContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            urlContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            urlContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            urlContainer.topAnchor.constraint(equalTo: topAnchor, constant: Constants.Layout.verticalPadding),
+            urlContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Constants.Layout.horizontalPadding),
+            urlContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Constants.Layout.horizontalPadding),
+            urlContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Constants.Layout.verticalPadding),
             
             searchIcon.leadingAnchor.constraint(equalTo: urlContainer.leadingAnchor, constant: 12),
             searchIcon.centerYAnchor.constraint(equalTo: urlContainer.centerYAnchor),
@@ -99,7 +97,7 @@ class BrowserURLBar: UIView {
     }
     
     func getURL() -> String? {
-        return urlTextField.text
+        urlTextField.text
     }
     
     @discardableResult
@@ -113,21 +111,26 @@ class BrowserURLBar: UIView {
         urlTextField.becomeFirstResponder()
         return super.becomeFirstResponder()
     }
+}
+
+// MARK: - URL Handling
+
+private extension BrowserURLBar {
     
-    // MARK: - URL Handling
-    
-    private func isURL(_ input: String) -> Bool {
+    func isURL(_ input: String) -> Bool {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
-        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+        // Check for explicit protocols
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") ||
+           trimmed.hasPrefix("about:") || trimmed.hasPrefix("file://") {
             return true
         }
-        if trimmed.hasPrefix("about:") || trimmed.hasPrefix("file://") {
-            return true
-        }
+        
+        // Check for domain-like patterns
         if trimmed.contains(".") && !trimmed.contains(" ") {
             return true
         }
+        
         return false
     }
     
@@ -136,19 +139,18 @@ class BrowserURLBar: UIView {
         guard !trimmed.isEmpty else { return nil }
         
         if isURL(trimmed) {
-            if !trimmed.contains("://") {
-                return "https://\(trimmed)"
-            }
-            return trimmed
+            return trimmed.contains("://") ? trimmed : "https://\(trimmed)"
         } else {
             let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            return "https://www.google.com/search?q=\(encoded)"
+            return Constants.URLs.searchEngine + encoded
         }
     }
 }
 
 // MARK: - UITextFieldDelegate
+
 extension BrowserURLBar: UITextFieldDelegate {
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         guard let text = textField.text, !text.isEmpty else { return true }
         
@@ -157,7 +159,7 @@ extension BrowserURLBar: UITextFieldDelegate {
         if let url = inputToURL(text) {
             delegate?.urlSubmitted(url)
         }
+        
         return true
     }
 }
-

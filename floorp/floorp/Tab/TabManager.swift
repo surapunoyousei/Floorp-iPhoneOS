@@ -5,6 +5,8 @@
 import UIKit
 import GeckoView
 
+// MARK: - TabManagerDelegate
+
 protocol TabManagerDelegate: AnyObject {
     func tabManager(_ manager: TabManager, didSelectTab tab: Tab)
     func tabManager(_ manager: TabManager, didAddTab tab: Tab)
@@ -12,10 +14,16 @@ protocol TabManagerDelegate: AnyObject {
     func tabManagerDidUpdateTabs(_ manager: TabManager)
 }
 
+// MARK: - TabManager
+
 /// Manages all browser tabs
-class TabManager {
+final class TabManager {
+    
+    // MARK: - Singleton
     
     static let shared = TabManager()
+    
+    // MARK: - Properties
     
     weak var delegate: TabManagerDelegate?
     
@@ -24,16 +32,22 @@ class TabManager {
     
     var selectedIndex: Int? {
         guard let tab = selectedTab else { return nil }
-        return tabs.firstIndex(where: { $0.id == tab.id })
+        return tabs.firstIndex(of: tab)
     }
     
     var tabCount: Int {
-        return tabs.count
+        tabs.count
     }
+    
+    var isEmpty: Bool {
+        tabs.isEmpty
+    }
+    
+    // MARK: - Init
     
     private init() {}
     
-    // MARK: - Tab Management
+    // MARK: - Tab Creation
     
     /// Creates a new tab and optionally loads a URL
     @discardableResult
@@ -58,32 +72,36 @@ class TabManager {
         return tab
     }
     
+    // MARK: - Tab Selection
+    
     /// Selects a tab
     func selectTab(_ tab: Tab) {
-        guard tabs.contains(where: { $0.id == tab.id }) else { return }
+        guard tabs.contains(tab) else { return }
         selectedTab = tab
         delegate?.tabManager(self, didSelectTab: tab)
     }
     
     /// Selects tab at index
     func selectTab(at index: Int) {
-        guard index >= 0 && index < tabs.count else { return }
+        guard tabs.indices.contains(index) else { return }
         selectTab(tabs[index])
     }
     
+    // MARK: - Tab Closing
+    
     /// Closes a tab
     func closeTab(_ tab: Tab) {
-        guard let index = tabs.firstIndex(where: { $0.id == tab.id }) else { return }
+        guard let index = tabs.firstIndex(of: tab) else { return }
         
         tab.close()
         tabs.remove(at: index)
         delegate?.tabManager(self, didRemoveTab: tab)
         
         // If we closed the selected tab, select another one
-        if selectedTab?.id == tab.id {
+        if selectedTab == tab {
             if tabs.isEmpty {
                 // Create a new tab if all tabs are closed
-                createTab(url: "https://floorp.app")
+                createTab(url: Constants.URLs.homepage)
             } else {
                 // Select the previous tab or the first one
                 let newIndex = min(index, tabs.count - 1)
@@ -96,9 +114,22 @@ class TabManager {
     
     /// Closes tab at index
     func closeTab(at index: Int) {
-        guard index >= 0 && index < tabs.count else { return }
+        guard tabs.indices.contains(index) else { return }
         closeTab(tabs[index])
     }
+    
+    /// Closes all tabs except the given one
+    func closeAllTabs(except exceptTab: Tab? = nil) {
+        let tabsToClose: [Tab]
+        if let exceptTab {
+            tabsToClose = tabs.filter { $0 != exceptTab }
+        } else {
+            tabsToClose = tabs
+        }
+        tabsToClose.forEach { closeTab($0) }
+    }
+    
+    // MARK: - Tab Updates
     
     /// Updates tab info (title, url, screenshot)
     func updateTab(_ tab: Tab, title: String? = nil, url: String? = nil, screenshot: UIImage? = nil) {
@@ -115,9 +146,15 @@ class TabManager {
     }
     
     /// Updates navigation state for a tab
-    func updateTabNavigation(_ tab: Tab, canGoBack: Bool, canGoForward: Bool) {
+    func updateNavigation(for tab: Tab, canGoBack: Bool, canGoForward: Bool) {
         tab.canGoBack = canGoBack
         tab.canGoForward = canGoForward
     }
+    
+    // MARK: - Tab Lookup
+    
+    /// Finds a tab by its session
+    func tab(for session: GeckoSession) -> Tab? {
+        tabs.first { $0.session === session }
+    }
 }
-

@@ -4,6 +4,8 @@
 
 import UIKit
 
+// MARK: - TabSwitcherDelegate
+
 protocol TabSwitcherDelegate: AnyObject {
     func tabSwitcher(_ switcher: TabSwitcherViewController, didSelectTab tab: Tab)
     func tabSwitcher(_ switcher: TabSwitcherViewController, didCloseTab tab: Tab)
@@ -11,11 +13,14 @@ protocol TabSwitcherDelegate: AnyObject {
     func tabSwitcherDidRequestDismiss(_ switcher: TabSwitcherViewController)
 }
 
+// MARK: - TabSwitcherViewController
+
 /// Tab switcher with 2x2 grid layout showing tab cards with screenshots
-class TabSwitcherViewController: UIViewController {
+final class TabSwitcherViewController: UIViewController {
+    
+    // MARK: - Properties
     
     weak var delegate: TabSwitcherDelegate?
-    
     private let tabManager = TabManager.shared
     
     // MARK: - UI Components
@@ -23,7 +28,7 @@ class TabSwitcherViewController: UIViewController {
     private lazy var headerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
+        view.backgroundColor = Theme.Colors.background
         return view
     }()
     
@@ -31,7 +36,7 @@ class TabSwitcherViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Tabs"
-        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.font = Theme.Fonts.title
         label.textColor = .label
         return label
     }()
@@ -39,7 +44,7 @@ class TabSwitcherViewController: UIViewController {
     private lazy var tabCountLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 14)
+        label.font = Theme.Fonts.caption
         label.textColor = .secondaryLabel
         return label
     }()
@@ -48,8 +53,8 @@ class TabSwitcherViewController: UIViewController {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("Done", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        button.tintColor = .systemBlue
+        button.titleLabel?.font = Theme.Fonts.title
+        button.tintColor = Theme.Colors.accent
         button.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
         return button
     }()
@@ -57,16 +62,14 @@ class TabSwitcherViewController: UIViewController {
     private lazy var newTabButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
-        button.setImage(UIImage(systemName: "plus", withConfiguration: config), for: .normal)
-        button.tintColor = .systemBlue
+        button.setImage(UIImage(systemName: "plus", withConfiguration: Theme.Symbols.large), for: .normal)
+        button.tintColor = Theme.Colors.accent
         button.addTarget(self, action: #selector(newTabTapped), for: .touchUpInside)
         return button
     }()
     
     private lazy var collectionView: UICollectionView = {
-        let layout = createLayout()
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.backgroundColor = .clear
         cv.delegate = self
@@ -80,10 +83,7 @@ class TabSwitcherViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        overrideUserInterfaceStyle = .dark
-        view.backgroundColor = UIColor(white: 0.08, alpha: 1.0)
-        
+        configureAppearance()
         setupUI()
         updateTabCount()
     }
@@ -94,7 +94,12 @@ class TabSwitcherViewController: UIViewController {
         updateTabCount()
     }
     
-    // MARK: - Setup
+    // MARK: - Configuration
+    
+    private func configureAppearance() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = Theme.Colors.tabSwitcherBackground
+    }
     
     private func setupUI() {
         view.addSubview(headerView)
@@ -113,8 +118,8 @@ class TabSwitcherViewController: UIViewController {
             
             newTabButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             newTabButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            newTabButton.widthAnchor.constraint(equalToConstant: 44),
-            newTabButton.heightAnchor.constraint(equalToConstant: 44),
+            newTabButton.widthAnchor.constraint(equalToConstant: Constants.Layout.buttonSize),
+            newTabButton.heightAnchor.constraint(equalToConstant: Constants.Layout.buttonSize),
             
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -8),
@@ -133,9 +138,8 @@ class TabSwitcherViewController: UIViewController {
     }
     
     private func createLayout() -> UICollectionViewLayout {
-        // 2x2 grid layout
         let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(0.5),
+            widthDimension: .fractionalWidth(1.0 / CGFloat(Constants.Tab.gridColumns)),
             heightDimension: .fractionalHeight(1.0)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -143,9 +147,12 @@ class TabSwitcherViewController: UIViewController {
         
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalWidth(0.65) // Aspect ratio for cards
+            heightDimension: .fractionalWidth(Constants.Tab.cardAspectRatio)
         )
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: groupSize,
+            subitems: Array(repeating: item, count: Constants.Tab.gridColumns)
+        )
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10)
@@ -170,9 +177,11 @@ class TabSwitcherViewController: UIViewController {
 }
 
 // MARK: - UICollectionViewDataSource
+
 extension TabSwitcherViewController: UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return tabManager.tabs.count
+        tabManager.tabCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -182,7 +191,7 @@ extension TabSwitcherViewController: UICollectionViewDataSource {
         ) as! TabCardCell
         
         let tab = tabManager.tabs[indexPath.item]
-        let isSelected = tabManager.selectedTab?.id == tab.id
+        let isSelected = tabManager.selectedTab == tab
         cell.configure(with: tab, isSelected: isSelected)
         cell.delegate = self
         
@@ -191,7 +200,9 @@ extension TabSwitcherViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UICollectionViewDelegate
+
 extension TabSwitcherViewController: UICollectionViewDelegate {
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let tab = tabManager.tabs[indexPath.item]
         delegate?.tabSwitcher(self, didSelectTab: tab)
@@ -199,20 +210,17 @@ extension TabSwitcherViewController: UICollectionViewDelegate {
 }
 
 // MARK: - TabCardCellDelegate
+
 extension TabSwitcherViewController: TabCardCellDelegate {
+    
     func tabCardCellDidTapClose(_ cell: TabCardCell) {
-        guard let indexPath = collectionView.indexPath(for: cell) else { return }
+        guard let indexPath = collectionView.indexPath(for: cell),
+              indexPath.item < tabManager.tabCount else { return }
         
-        // Get tab before any modifications
-        guard indexPath.item < tabManager.tabs.count else { return }
         let tab = tabManager.tabs[indexPath.item]
-        
-        // First close the tab (updates data source)
         delegate?.tabSwitcher(self, didCloseTab: tab)
         
-        // Then reload collection view to sync with data source
         collectionView.reloadData()
         updateTabCount()
     }
 }
-
