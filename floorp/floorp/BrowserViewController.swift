@@ -91,6 +91,15 @@ class BrowserViewController: UIViewController {
         setupTabManager()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Ensure homepage is loaded if current tab has no URL
+        if let tab = currentTab, tab.url == nil {
+            tab.load(homepage)
+        }
+    }
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }

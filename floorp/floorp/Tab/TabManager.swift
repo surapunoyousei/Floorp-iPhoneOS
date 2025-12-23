@@ -44,12 +44,14 @@ class TabManager {
         tabs.append(tab)
         delegate?.tabManager(self, didAddTab: tab)
         
-        if let url = url {
-            tab.load(url)
-        }
-        
+        // Select first, then load - ensures geckoView.session is set before loading
         if select {
             selectTab(tab)
+        }
+        
+        // Load URL after selection so geckoView is connected
+        if let url = url {
+            tab.load(url)
         }
         
         delegate?.tabManagerDidUpdateTabs(self)

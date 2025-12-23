@@ -202,16 +202,17 @@ extension TabSwitcherViewController: UICollectionViewDelegate {
 extension TabSwitcherViewController: TabCardCellDelegate {
     func tabCardCellDidTapClose(_ cell: TabCardCell) {
         guard let indexPath = collectionView.indexPath(for: cell) else { return }
+        
+        // Get tab before any modifications
+        guard indexPath.item < tabManager.tabs.count else { return }
         let tab = tabManager.tabs[indexPath.item]
+        
+        // First close the tab (updates data source)
         delegate?.tabSwitcher(self, didCloseTab: tab)
         
-        // Animate removal
-        collectionView.performBatchUpdates {
-            collectionView.deleteItems(at: [indexPath])
-        } completion: { [weak self] _ in
-            self?.updateTabCount()
-            self?.collectionView.reloadData()
-        }
+        // Then reload collection view to sync with data source
+        collectionView.reloadData()
+        updateTabCount()
     }
 }
 

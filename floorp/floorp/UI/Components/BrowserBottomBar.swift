@@ -59,10 +59,8 @@ class BrowserBottomBar: UIView {
         button.tintColor = .label
         button.addTarget(self, action: #selector(tabsTapped), for: .touchUpInside)
         
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 44),
-            button.heightAnchor.constraint(equalToConstant: 44),
-        ])
+        // Only set width, height is determined by stackView
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
         return button
     }()
     
@@ -119,10 +117,10 @@ class BrowserBottomBar: UIView {
             topBorder.trailingAnchor.constraint(equalTo: trailingAnchor),
             topBorder.heightAnchor.constraint(equalToConstant: 0.5),
             
-            stackView.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            stackView.topAnchor.constraint(equalTo: topAnchor),
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
             stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
-            stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            stackView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
     
@@ -134,10 +132,8 @@ class BrowserBottomBar: UIView {
         button.tintColor = .label
         button.addTarget(self, action: action, for: .touchUpInside)
         
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 44),
-            button.heightAnchor.constraint(equalToConstant: 44),
-        ])
+        // Only set width, height is determined by stackView
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
         return button
     }
     
