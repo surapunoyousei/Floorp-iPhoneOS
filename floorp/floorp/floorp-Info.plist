@@ -6,20 +6,20 @@
 	<string>LaunchScreen</string>
 	<key>BrowserEngineNetworkingResidencies</key>
 	<array>
-		<string>org.mozilla.ios.GeckoTestBrowser.Networking</string>
+		<string>org.floorp.ios.Floorp.Networking</string>
 	</array>
 	<key>BrowserEngineRenderingResidencies</key>
 	<array>
-		<string>org.mozilla.ios.GeckoTestBrowser.Rendering</string>
+		<string>org.floorp.ios.Floorp.Rendering</string>
 	</array>
 	<key>BrowserEngineWebContentResidencies</key>
 	<array>
-		<string>org.mozilla.ios.GeckoTestBrowser.WebContent</string>
+		<string>org.floorp.ios.Floorp.WebContent</string>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.mozilla.ios.GeckoTestBrowser</string>
+	<string>org.floorp.ios.Floorp</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

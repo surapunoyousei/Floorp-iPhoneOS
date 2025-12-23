@@ -5,6 +5,6 @@
 	<key>com.apple.developer.web-browser-engine.rendering</key>
 	<true/>
 	<key>com.apple.developer.memory.transfer-send</key>
-	<string>org.mozilla.ios.GeckoTestBrowser</string>
+	<string>org.floorp.ios.Floorp</string>
 </dict>
 </plist>

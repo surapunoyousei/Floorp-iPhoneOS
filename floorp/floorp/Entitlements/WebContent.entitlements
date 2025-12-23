@@ -7,6 +7,6 @@
 	<key>com.apple.developer.cs.allow-jit</key>
 	<true/>
 	<key>com.apple.developer.memory.transfer-accept</key>
-	<string>org.mozilla.ios.GeckoTestBrowser</string>
+	<string>org.floorp.ios.Floorp</string>
 </dict>
 </plist>
