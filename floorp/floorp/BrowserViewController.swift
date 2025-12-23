@@ -6,22 +6,24 @@ import GeckoView
 class BrowserViewController: UIViewController {
     private var geckoView: GeckoView!
     private var session: GeckoSession!
+    private var isGeckoConfigured = false
+
+    @objc init() {
+        super.init(nibName: nil, bundle: nil)
+        print("[Floorp] BrowserViewController: init called")
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        print("[Floorp] BrowserViewController: viewDidLoad")
+        view.backgroundColor = .blue // 背景を青に（目立つように）
 
-        setupGecko()
-    }
-
-    private func setupGecko() {
-        print("[Floorp] BrowserViewController: Setting up Gecko")
-        
-        session = GeckoSession()
-        session.open()
-        
         geckoView = GeckoView()
-        geckoView.session = session
+        geckoView.backgroundColor = .red // GeckoView を赤に
         geckoView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(geckoView)
@@ -31,9 +33,22 @@ class BrowserViewController: UIViewController {
             geckoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             geckoView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if !isGeckoConfigured && geckoView.frame.width > 0 {
+            setupGecko()
+            isGeckoConfigured = true
+        }
+    }
+
+    private func setupGecko() {
+        print("[Floorp] BrowserViewController: Setting up Gecko with size \(geckoView.frame.size)")
+        session = GeckoSession()
+        session.open()
+        geckoView.session = session
         print("[Floorp] BrowserViewController: Loading floorp.app")
         session.load("https://floorp.app")
     }
 }
-

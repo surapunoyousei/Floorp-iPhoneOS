@@ -107,13 +107,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CE64447D2EFB1C8700584BEC /* Exceptions for "floorp" folder in "floorp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = CEC814FE2EFB0DFE0019674C /* floorp */;
-		};
 		CEB81F2F2EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "WebContent" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -168,7 +161,6 @@
 		CEC815012EFB0DFE0019674C /* floorp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				CE64447D2EFB1C8700584BEC /* Exceptions for "floorp" folder in "floorp" target */,
 				CEB81F2F2EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "WebContent" target */,
 				CEB81F302EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "Networking" target */,
 				CEB81F312EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "Rendering" target */,
@@ -850,12 +842,12 @@
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Frameworks",
 				);
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
-				INFOPLIST_FILE = floorp/Info.plist;
+				INFOPLIST_FILE = "floorp/floorp-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -909,12 +901,12 @@
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Frameworks",
 				);
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
-				INFOPLIST_FILE = floorp/Info.plist;
+				INFOPLIST_FILE = "floorp/floorp-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -2,22 +2,14 @@ require 'xcodeproj'
 
 project_path = 'floorp.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
+target = project.targets.find { |t| t.name == 'floorp' }
 
-project.targets.each do |target|
-  next if target.name == 'floorp' # メインアプリ以外
-  
-  puts "Deepening rpath for Extension: #{target.name}"
-  target.build_configurations.each do |config|
-    s = config.build_settings
-    # 既存のパスに加え、XULが潜んでいる深い階層も追加
-    s['LD_RUNPATH_SEARCH_PATHS'] = [
-      '$(inherited)',
-      '@executable_path/Frameworks',
-      '@executable_path/../../Frameworks',
-      '@executable_path/../../Frameworks/GeckoView.framework/Frameworks'
-    ].uniq
-  end
+target.build_configurations.each do |config|
+  s = config.build_settings
+  # 正しい plist ファイル名を指定
+  s['INFOPLIST_FILE'] = 'floorp/floorp-Info.plist'
+  s['GENERATE_INFOPLIST_FILE'] = 'NO'
 end
 
 project.save
-puts "Extension rpaths deepened successfully."
+puts "Project settings fixed to use floorp-Info.plist."
