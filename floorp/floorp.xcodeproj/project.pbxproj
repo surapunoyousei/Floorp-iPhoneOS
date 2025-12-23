@@ -516,6 +516,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/Rendering/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -555,6 +561,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/Rendering/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -593,6 +605,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/Networking/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -632,6 +650,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/WebContent/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -671,6 +695,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/Networking/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -941,6 +971,12 @@
 				);
 				INFOPLIST_FILE = ExtensionsSource/WebContent/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../Frameworks/GeckoView.framework/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (

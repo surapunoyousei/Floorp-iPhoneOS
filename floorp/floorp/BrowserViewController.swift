@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import GeckoView
 
+@objc(BrowserViewController)
 class BrowserViewController: UIViewController {
     private var geckoView: GeckoView!
     private var session: GeckoSession!
