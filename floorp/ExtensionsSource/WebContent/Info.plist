@@ -21,5 +21,12 @@
 		<key>EXExtensionPointIdentifier</key>
 		<string>com.apple.web-browser-engine.content</string>
 	</dict>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict/>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.web-browser-engine.content</string>
+	</dict>
 </dict>
 </plist>

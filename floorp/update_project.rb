@@ -3,29 +3,38 @@ require 'xcodeproj'
 project_path = 'floorp.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
 
-project.targets.each do |target|
-  puts "Updating search paths for: #{target.name}"
-  
-  target.build_configurations.each do |config|
-    s = config.build_settings
-    
-    # 1. ヘッダーとフレームワークの検索パスを全ターゲットに適用
-    s['HEADER_SEARCH_PATHS'] = ['$(inherited)', '$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers'].uniq
-    s['FRAMEWORK_SEARCH_PATHS'] = [
-      '$(inherited)', 
-      '$(PROJECT_DIR)/Frameworks', 
-      '$(PROJECT_DIR)/Frameworks/GeckoView.framework/Frameworks'
-    ].uniq
-    
-    # 2. その他の必須フラグ
-    s['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-    s['OTHER_LDFLAGS'] = [
-      '$(inherited)', 
-      '-framework', '"GeckoView"', 
-      '$(PROJECT_DIR)/Frameworks/GeckoView.framework/Frameworks/XUL'
-    ].uniq
+# 全ターゲットを取得
+all_targets = project.targets
+
+# 共通で使用すべき Swift ファイルのリスト
+common_files = [
+  'AllowOrDeny.swift',
+  'ContentDelegate.swift',
+  'EventDispatcher.swift',
+  'GeckoRuntime.swift',
+  'GeckoSession.swift',
+  'GeckoSessionHandler.swift',
+  'GeckoView.swift',
+  'NavigationDelegate.swift',
+  'PermissionDelegate.swift',
+  'ProgressDelegate.swift'
+]
+
+# プロジェクト内のファイル参照を全スキャンして紐付け
+common_files.each do |file_name|
+  file_ref = project.objects.find { |obj| obj.isa == 'PBXFileReference' && obj.name == file_name }
+  if file_ref
+    all_targets.each do |target|
+      # まだターゲットに含まれていなければ追加
+      unless target.source_build_phase.files_references.include?(file_ref)
+        puts "Forcing linkage: #{file_name} -> #{target.name}"
+        target.add_file_references([file_ref])
+      end
+    end
+  else
+    puts "Warning: Could not find file reference for #{file_name}"
   end
 end
 
 project.save
-puts "All target search paths updated."
+puts "Surgical linkage of common files complete."
