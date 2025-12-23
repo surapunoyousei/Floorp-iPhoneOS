@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE6444792EFB1C1800584BEC /* GeckoView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6444772EFB1C1200584BEC /* GeckoView.framework */; };
+		CE64447A2EFB1C1800584BEC /* GeckoView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE6444772EFB1C1200584BEC /* GeckoView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CEB81E782EFB123E00F2BDC5 /* Networking.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB81E6E2EFB11FD00F2BDC5 /* Networking.swift */; };
 		CEB81E792EFB124600F2BDC5 /* Rendering.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB81E722EFB11FD00F2BDC5 /* Rendering.swift */; };
 		CEB81E7A2EFB124C00F2BDC5 /* WebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB81E762EFB11FD00F2BDC5 /* WebContent.swift */; };
@@ -61,6 +63,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		CE64447B2EFB1C1900584BEC /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CE64447A2EFB1C1800584BEC /* GeckoView.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CEB81E7F2EFB12AF00F2BDC5 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -77,6 +90,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CE6444772EFB1C1200584BEC /* GeckoView.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GeckoView.framework; path = Frameworks/GeckoView.framework; sourceTree = "<group>"; };
 		CEB81E6C2EFB11FD00F2BDC5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CEB81E6D2EFB11FD00F2BDC5 /* Networking.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Networking.entitlements; sourceTree = "<group>"; };
 		CEB81E6E2EFB11FD00F2BDC5 /* Networking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Networking.swift; sourceTree = "<group>"; };
@@ -93,6 +107,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CE64447D2EFB1C8700584BEC /* Exceptions for "floorp" folder in "floorp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CEC814FE2EFB0DFE0019674C /* floorp */;
+		};
 		CEB81F2F2EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "WebContent" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -147,6 +168,7 @@
 		CEC815012EFB0DFE0019674C /* floorp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				CE64447D2EFB1C8700584BEC /* Exceptions for "floorp" folder in "floorp" target */,
 				CEB81F2F2EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "WebContent" target */,
 				CEB81F302EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "Networking" target */,
 				CEB81F312EFB173E00F2BDC5 /* Exceptions for "floorp" folder in "Rendering" target */,
@@ -182,6 +204,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE6444792EFB1C1800584BEC /* GeckoView.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,6 +247,7 @@
 		CEB81E7B2EFB12AF00F2BDC5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE6444772EFB1C1200584BEC /* GeckoView.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -296,6 +320,7 @@
 				CEC814FC2EFB0DFE0019674C /* Frameworks */,
 				CEC814FD2EFB0DFE0019674C /* Resources */,
 				CEB81E7F2EFB12AF00F2BDC5 /* Embed Foundation Extensions */,
+				CE64447B2EFB1C1900584BEC /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -490,7 +515,7 @@
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
 				INFOPLIST_FILE = ExtensionsSource/Rendering/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -529,7 +554,7 @@
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
 				INFOPLIST_FILE = ExtensionsSource/Rendering/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep --force";
 				OTHER_LDFLAGS = (
@@ -800,6 +825,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
+				INFOPLIST_FILE = floorp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -858,6 +884,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks/GeckoView.framework/Headers",
 				);
+				INFOPLIST_FILE = floorp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
