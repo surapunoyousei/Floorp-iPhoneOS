@@ -8,34 +8,63 @@ import GeckoView
 
 @objc(BrowserViewController)
 class BrowserViewController: UIViewController {
+    
     // MARK: - UI Components
     
     /// Fills the area above safe area (status bar / Dynamic Island)
-    private lazy var topSafeAreaFiller: UIView = .build { view in
-        view.backgroundColor = .systemBackground
-    }
+    private lazy var topSafeAreaFiller: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark 
+                ? UIColor(white: 0.1, alpha: 1.0)
+                : .systemBackground
+        }
+        return view
+    }()
     
-    private lazy var searchBar: BrowserSearchBar = .build { bar in
-        bar.backgroundColor = .systemBackground
-    }
+    /// URL bar at top (Desktop Floorp style)
+    private lazy var urlBar: BrowserURLBar = {
+        let bar = BrowserURLBar()
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        bar.delegate = self
+        return bar
+    }()
     
-    private lazy var progressBar: UIProgressView = .build { progress in
+    private lazy var progressBar: UIProgressView = {
+        let progress = UIProgressView()
+        progress.translatesAutoresizingMaskIntoConstraints = false
         progress.progressTintColor = .systemBlue
-        progress.trackTintColor = .systemGray5
-    }
+        progress.trackTintColor = .clear
+        return progress
+    }()
     
-    private lazy var geckoView: GeckoView = .build { view in
-        view.backgroundColor = .white
-    }
+    private lazy var geckoView: GeckoView = {
+        let view = GeckoView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .systemBackground
+        return view
+    }()
     
-    private lazy var toolbar: BrowserToolbar = .build { toolbar in
-        toolbar.isTranslucent = false
-    }
+    /// Bottom navigation bar with buttons
+    private lazy var bottomBar: BrowserBottomBar = {
+        let bar = BrowserBottomBar()
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        bar.delegate = self
+        return bar
+    }()
     
     /// Fills the area below safe area (home indicator)
-    private lazy var bottomSafeAreaFiller: UIView = .build { view in
-        view.backgroundColor = .systemBackground
-    }
+    private lazy var bottomSafeAreaFiller: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark 
+                ? UIColor(white: 0.1, alpha: 1.0)
+                : .systemBackground
+        }
+        return view
+    }()
     
     // MARK: - Properties
     
@@ -54,64 +83,68 @@ class BrowserViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        
+        // Use dark interface style for Floorp look
+        overrideUserInterfaceStyle = .dark
+        
+        view.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
         
         setupUI()
         setupGeckoSession()
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     // MARK: - UI Setup
     
     private func setupUI() {
-        // Add subviews in order (bottom to top for z-order)
+        // Add subviews
         view.addSubview(geckoView)
         view.addSubview(topSafeAreaFiller)
-        view.addSubview(searchBar)
+        view.addSubview(urlBar)
         view.addSubview(progressBar)
-        view.addSubview(toolbar)
+        view.addSubview(bottomBar)
         view.addSubview(bottomSafeAreaFiller)
-        
-        // Configure delegates
-        searchBar.configure(delegate: self)
-        toolbar.toolbarDelegate = self
         
         // Layout constraints
         NSLayoutConstraint.activate([
-            // Top safe area filler (from top edge to safe area top)
+            // Top safe area filler
             topSafeAreaFiller.topAnchor.constraint(equalTo: view.topAnchor),
             topSafeAreaFiller.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             topSafeAreaFiller.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             topSafeAreaFiller.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             
-            // Search bar (at top safe area)
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            searchBar.heightAnchor.constraint(equalToConstant: 56),
+            // URL bar at top
+            urlBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            urlBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            urlBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            urlBar.heightAnchor.constraint(equalToConstant: 52),
             
-            // Progress bar (below search bar)
-            progressBar.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            // Progress bar
+            progressBar.topAnchor.constraint(equalTo: urlBar.bottomAnchor),
             progressBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             progressBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             progressBar.heightAnchor.constraint(equalToConstant: 2),
             
-            // GeckoView (fills remaining space between progress bar and toolbar)
-            geckoView.topAnchor.constraint(equalTo: progressBar.bottomAnchor),
-            geckoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            geckoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            geckoView.bottomAnchor.constraint(equalTo: toolbar.topAnchor),
+            // Bottom bar
+            bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            bottomBar.heightAnchor.constraint(equalToConstant: 50),
             
-            // Toolbar (above bottom safe area)
-            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            toolbar.heightAnchor.constraint(equalToConstant: 44),
-            
-            // Bottom safe area filler (below toolbar to bottom edge)
+            // Bottom safe area filler
             bottomSafeAreaFiller.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             bottomSafeAreaFiller.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomSafeAreaFiller.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomSafeAreaFiller.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            // GeckoView (fills remaining space)
+            geckoView.topAnchor.constraint(equalTo: progressBar.bottomAnchor),
+            geckoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            geckoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            geckoView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor),
         ])
         
         // Initial state
@@ -131,60 +164,65 @@ class BrowserViewController: UIViewController {
         
         // Load homepage
         if !homepage.isEmpty {
-            browse(to: homepage)
+            session.load(homepage)
         }
     }
     
     // MARK: - Navigation
     
-    private func browse(to urlString: String) {
-        searchBar.resignFirstResponder()
-        
-        if let url = searchBar.inputToURL(urlString) {
-            session.load(url)
-        }
+    private func loadURL(_ urlString: String) {
+        urlBar.resignFirstResponder()
+        session.load(urlString)
     }
 }
 
-// MARK: - BrowserSearchBarDelegate
-extension BrowserViewController: BrowserSearchBarDelegate {
-    func searchBarDidSubmit(text: String) {
-        browse(to: text)
+// MARK: - BrowserURLBarDelegate
+extension BrowserViewController: BrowserURLBarDelegate {
+    func urlSubmitted(_ url: String) {
+        loadURL(url)
     }
 }
 
-// MARK: - BrowserToolbarDelegate
-extension BrowserViewController: BrowserToolbarDelegate {
-    func backButtonClicked() {
+// MARK: - BrowserBottomBarDelegate
+extension BrowserViewController: BrowserBottomBarDelegate {
+    func backButtonTapped() {
         session.goBack()
     }
     
-    func forwardButtonClicked() {
+    func forwardButtonTapped() {
         session.goForward()
     }
     
-    func reloadButtonClicked() {
+    func reloadButtonTapped() {
         session.reload()
     }
     
-    func stopButtonClicked() {
+    func stopButtonTapped() {
         session.stop()
+    }
+    
+    func homeButtonTapped() {
+        loadURL(homepage)
+    }
+    
+    func tabsButtonTapped() {
+        // TODO: Implement tab management
+        print("[Floorp] Tabs button tapped - not implemented yet")
     }
 }
 
 // MARK: - NavigationDelegate
 extension BrowserViewController: NavigationDelegate {
     func onLocationChange(session: GeckoSession, url: String?, permissions: [ContentPermission]) {
-        // Update search bar with current URL
-        searchBar.setSearchBarText(url)
+        urlBar.setURL(url)
     }
     
     func onCanGoBack(session: GeckoSession, canGoBack: Bool) {
-        toolbar.updateBackButton(canGoBack: canGoBack)
+        bottomBar.updateBackButton(canGoBack: canGoBack)
     }
     
     func onCanGoForward(session: GeckoSession, canGoForward: Bool) {
-        toolbar.updateForwardButton(canGoForward: canGoForward)
+        bottomBar.updateForwardButton(canGoForward: canGoForward)
     }
     
     func onLoadRequest(session: GeckoSession, request: LoadRequest) -> AllowOrDeny {
@@ -205,12 +243,12 @@ extension BrowserViewController: ProgressDelegate {
     func onPageStart(session: GeckoSession, url: String) {
         progressBar.isHidden = false
         progressBar.progress = 0
-        toolbar.updateReloadStopButton(isLoading: true)
+        bottomBar.updateLoadingState(isLoading: true)
     }
     
     func onPageStop(session: GeckoSession, success: Bool) {
         progressBar.isHidden = true
-        toolbar.updateReloadStopButton(isLoading: false)
+        bottomBar.updateLoadingState(isLoading: false)
     }
     
     func onProgressChange(session: GeckoSession, progress: Int) {
@@ -220,9 +258,7 @@ extension BrowserViewController: ProgressDelegate {
 
 // MARK: - ContentDelegate
 extension BrowserViewController: ContentDelegate {
-    func onTitleChange(session: GeckoSession, title: String) {
-        // Could update window title or tab title here
-    }
+    func onTitleChange(session: GeckoSession, title: String) {}
     
     func onPreviewImage(session: GeckoSession, previewImageUrl: String) {}
     
@@ -231,41 +267,37 @@ extension BrowserViewController: ContentDelegate {
     func onCloseRequest(session: GeckoSession) {}
     
     func onFullScreen(session: GeckoSession, fullScreen: Bool) {
-        // Handle fullscreen mode
-        navigationController?.setNavigationBarHidden(fullScreen, animated: true)
-        topSafeAreaFiller.isHidden = fullScreen
-        searchBar.isHidden = fullScreen
-        progressBar.isHidden = fullScreen
-        toolbar.isHidden = fullScreen
-        bottomSafeAreaFiller.isHidden = fullScreen
+        UIView.animate(withDuration: 0.3) {
+            self.topSafeAreaFiller.isHidden = fullScreen
+            self.urlBar.isHidden = fullScreen
+            self.progressBar.isHidden = fullScreen
+            self.bottomBar.isHidden = fullScreen
+            self.bottomSafeAreaFiller.isHidden = fullScreen
+        }
     }
     
     func onMetaViewportFitChange(session: GeckoSession, viewportFit: String) {}
     
     func onProductUrl(session: GeckoSession) {}
     
-    func onContextMenu(session: GeckoSession, screenX: Int, screenY: Int, element: ContextElement) {
-        // Could show context menu here
-    }
+    func onContextMenu(session: GeckoSession, screenX: Int, screenY: Int, element: ContextElement) {}
     
     func onCrash(session: GeckoSession) {
-        // Handle crash - could show an error UI and offer to reload
         let alert = UIAlertController(
-            title: "ページがクラッシュしました",
-            message: "このページで問題が発生しました。",
+            title: "Page Crashed",
+            message: "Something went wrong with this page.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "再読み込み", style: .default) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "Reload", style: .default) { [weak self] _ in
             self?.session.open()
             self?.geckoView.session = self?.session
-            self?.browse(to: self?.homepage ?? "https://floorp.app")
+            self?.session.load(self?.homepage ?? "https://floorp.app")
         })
-        alert.addAction(UIAlertAction(title: "閉じる", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
         present(alert, animated: true)
     }
     
     func onKill(session: GeckoSession) {
-        // Similar to crash handling
         onCrash(session: session)
     }
     
